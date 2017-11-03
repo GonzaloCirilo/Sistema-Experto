@@ -1,3 +1,4 @@
 .vs/
 T2/obj
 *.csproj
+*.exe
