@@ -15,8 +15,8 @@ namespace T2
 {
     public partial class Form1 : Form
     {
-        Dictionary<String, Int32> dictionary { get; set; } 
-
+        Dictionary<String, Int32> dictionary { get; set; }
+        Int32 cont = 0;
         public Form1()
         {
             InitializeComponent();
@@ -25,8 +25,10 @@ namespace T2
         private void Form1_Load(object sender, EventArgs e)
         {
             dictionary = new Dictionary<String, Int32>();
-            cmbAvenidas.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbAvenidasIni.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbDistritos.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbAvenidasFin.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTipoPasaje.DropDownStyle = ComboBoxStyle.DropDownList;
             Environment.SetEnvironmentVariable("Path", @"C:\\Program Files\\swipl\\bin");
             String[] param = { "-q", "-f", @"Trabajo2.pl" };
             PlEngine.Initialize(param);
@@ -36,10 +38,14 @@ namespace T2
                 Qload.NextSolution();
             }
             catch (PlException){}
-            InitializeDict();
-            Query(cmbAvenidas, "siguiente_avenida(AV,_)", "AV");
+            //InitializeDict();
+            Query(cmbAvenidasIni, "siguiente_avenida(AV,_)", "AV");
+            Query(cmbAvenidasIni, "siguiente_avenida(_,AV)", "AV");
             Query(cmbDistritos, "pertenece_distrito(_,Distrito)", "Distrito");
             Query(cmbTipoPasaje, "tipo_De_pasaje(Tipo,_,_)", "Tipo");
+            dictionary = new Dictionary<String, Int32>(); cont = 0;
+            Query(cmbAvenidasFin, "siguiente_avenida(AV,_)", "AV");
+            Query(cmbAvenidasFin, "siguiente_avenida(_,AV)", "AV");
         }
 
         private void InitializeDict()
@@ -62,11 +68,14 @@ namespace T2
             var Query = new PlQuery(predicate);
             try
             {
+                
                 foreach(var sv in Query.SolutionVariables)
                 {
                     if (!cmb.Items.Contains(sv[var].ToString()))
                     {
                         cmb.Items.Add(sv[var].ToString());
+                        if(var == "AV")
+                            dictionary.Add(sv[var].ToString(), cont); cont++;
                     }
                 }
             }
@@ -78,15 +87,59 @@ namespace T2
             PlEngine.PlCleanup();
         }
 
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void Validar(List<ComboBox> lst)
         {
-
+            foreach(var c in lst)
+            {
+                if (c.SelectedIndex == -1)
+                {
+                    MessageBox.Show("Faltan parametro(s)");break;
+                }
+            }
         }
 
         private void btnVerParaderos_Click(object sender, EventArgs e)
         {
-            var param = cmbDistritos.SelectedText.ToString();
-            var Query = new PlQuery("pertenece_distrito(Paraderos,"+param+")");
+            Validar(new List<ComboBox> { cmbDistritos });
+            lstbResult1.Items.Clear();
+            var param = cmbDistritos.SelectedItem.ToString();
+            var Query = new PlQuery("pertenece_distrito(Paraderos," + param + ")");
+            try
+            {
+                foreach (var q in Query.SolutionVariables)
+                {
+                    lstbResult1.Items.Add(q["Paraderos"].ToString());
+                }
+            }
+            catch (PlException) { }
         }
+
+        private void btnCalcularPago_Click(object sender, EventArgs e)
+        {
+            Validar(new List<ComboBox> { cmbAvenidasIni, cmbAvenidasFin, cmbTipoPasaje });
+            lblPago.Text = "";
+            var IniNombre = cmbAvenidasIni.SelectedItem.ToString();
+            var FinNombre = cmbAvenidasFin.SelectedItem.ToString();
+            var TipoPasaje = cmbTipoPasaje.SelectedItem.ToString();
+            var mensaje = "El trayecto  para " + TipoPasaje + " desde " + IniNombre + " hasta " + FinNombre + " cuesta: ";
+            var IniIndex = dictionary[IniNombre];
+            var FinIndex = dictionary[FinNombre];
+            if (FinIndex < IniIndex)
+            {
+                var aux = IniNombre;
+                IniNombre = FinNombre;
+                FinNombre = aux;
+            }
+            var Query = new PlQuery("pagar('" + TipoPasaje + "','" + IniNombre + "','" + FinNombre + "',P)");
+            try
+            {
+                foreach(var q in Query.SolutionVariables)
+                {
+                    mensaje += q["P"].ToString();
+                }
+            }catch (PlException) { }
+            lblPago.Text = mensaje;
+        }
+        
     }
 }

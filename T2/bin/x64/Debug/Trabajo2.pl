@@ -52,6 +52,12 @@ tipo_De_pasaje(escolar, urbano, 0.5).
 tipo_De_pasaje(escolar,interurbano,0.5).
 tipo_De_pasaje(escolar, directo, 0.5).
 
+directo(principal,'riva aguero').
+
+load(A):-
+	exists_file(A),
+	consult(A).
+
 %Regla de Inferencia
 es_urbano(Inicio, Fin):-
 pertenece_distrito(Inicio, Dist1),
@@ -64,14 +70,13 @@ Dist1\=Dist2.
 es_zonal(Inicio, Fin):-
 siguiente_avenida(Inicio,Fin).
 es_directo(Inicio, Fin):-
-siguiente_avenida(_,Inicio),
-siguiente_avenida(Fin,_).
+directo(Inicio,Fin).
 
 %Pago a realizar
-pagar(Tipo,Inicio,Fin):-
+pagar(Tipo,Inicio,Fin,P):-
 (es_zonal(Inicio,Fin) -> P=1;
+es_directo(Inicio,Fin)->tipo_De_pasaje(Tipo,directo,P);
 es_urbano(Inicio,Fin) -> tipo_De_pasaje(Tipo,urbano,P);
-es_interurbano(Inicio,Fin) ->tipo_De_pasaje(Tipo,interurbano,P);
-es_directo(Inicio,Fin)->tipo_De_pasaje(Tipo,directo,P)),
-write("El tryecto para "),write(Tipo),write(" desde "), write(Inicio), write(" hasta "),
- write(Fin), write(" cuesta: "),write(P).
+es_interurbano(Inicio,Fin) ->tipo_De_pasaje(Tipo,interurbano,P)),
+write('El tryecto para '),write(Tipo),write(' desde '), write(Inicio), write(' hasta '),
+write(Fin), write(' cuesta: '),write(P).
