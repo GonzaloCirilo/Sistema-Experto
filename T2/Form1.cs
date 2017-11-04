@@ -41,8 +41,12 @@ namespace T2
             //InitializeDict();
             Query(cmbAvenidasIni, "siguiente_avenida(AV,_)", "AV");
             Query(cmbAvenidasIni, "siguiente_avenida(_,AV)", "AV");
+            dictionary = new Dictionary<String, Int32>(); cont = 0;
+            Query(cmbSource, "siguiente_avenida(AV,_)", "AV");
+            Query(cmbSource, "siguiente_avenida(_,AV)", "AV");
             Query(cmbDistritos, "pertenece_distrito(_,Distrito)", "Distrito");
             Query(cmbTipoPasaje, "tipo_De_pasaje(Tipo,_,_)", "Tipo");
+            Query(cmbTipoUser, "tipo_De_pasaje(Tipo,_,_)", "Tipo");
             dictionary = new Dictionary<String, Int32>(); cont = 0;
             Query(cmbAvenidasFin, "siguiente_avenida(AV,_)", "AV");
             Query(cmbAvenidasFin, "siguiente_avenida(_,AV)", "AV");
@@ -87,20 +91,22 @@ namespace T2
             PlEngine.PlCleanup();
         }
 
-        private void Validar(List<ComboBox> lst)
+        private bool Validar(List<ComboBox> lst)
         {
             foreach(var c in lst)
             {
                 if (c.SelectedIndex == -1)
                 {
-                    MessageBox.Show("Faltan parametro(s)");break;
+                    MessageBox.Show("Faltan parametro(s)");
+                    return false;
                 }
             }
+            return true;
         }
 
         private void btnVerParaderos_Click(object sender, EventArgs e)
         {
-            Validar(new List<ComboBox> { cmbDistritos });
+            if (!Validar(new List<ComboBox> { cmbDistritos })) return;
             lstbResult1.Items.Clear();
             var param = cmbDistritos.SelectedItem.ToString();
             var Query = new PlQuery("pertenece_distrito(Paraderos," + param + ")");
@@ -140,6 +146,25 @@ namespace T2
             }catch (PlException) { }
             lblPago.Text = mensaje;
         }
-        
+
+        private void btnSee_Click(object sender, EventArgs e)
+        {
+            lstWhere.Items.Clear();
+            if (!Validar(new List<ComboBox> { cmbSource, cmbTipoUser }) || nudRemainingMoney.Value < 0)
+            { MessageBox.Show("Valor invalido"); return; }
+            var SourceName = cmbSource.Text;
+            var TipoName = cmbTipoUser.Text;
+            var Money = nudRemainingMoney.Value;
+            var Query = new PlQuery("puedo_viajar_a('" + SourceName + "'," + TipoName + "," + Money + ",AV)");
+            try
+            {
+                foreach(var q in Query.SolutionVariables)
+                {
+                    lstWhere.Items.Add(q["AV"].ToString());
+                }
+            }
+            catch (PlException) { }
+            if (lstWhere.Items.Count == 0) MessageBox.Show("No hay suficiente dinero para algun destino");
+        }
     }
 }

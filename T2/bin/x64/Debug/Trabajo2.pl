@@ -80,3 +80,9 @@ es_urbano(Inicio,Fin) -> tipo_De_pasaje(Tipo,urbano,P);
 es_interurbano(Inicio,Fin) ->tipo_De_pasaje(Tipo,interurbano,P)),
 write('El tryecto para '),write(Tipo),write(' desde '), write(Inicio), write(' hasta '),
 write(Fin), write(' cuesta: '),write(P).
+
+puedo_viajar_a(Inicio,Tipo,Dinero,AV):-
+pertenece_distrito(AV,_),
+AV\=Inicio,
+pagar(Tipo,Inicio,AV,P),
+P=<Dinero.

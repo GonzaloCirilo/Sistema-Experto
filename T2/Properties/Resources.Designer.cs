@@ -59,5 +59,15 @@ namespace T2.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon Graphicloads_Colorful_Long_Shadow_Bus {
+            get {
+                object obj = ResourceManager.GetObject("Graphicloads_Colorful_Long_Shadow_Bus", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }
